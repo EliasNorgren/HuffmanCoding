@@ -1,7 +1,5 @@
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 
 public class HuffmanDecoder {
@@ -13,19 +11,20 @@ public class HuffmanDecoder {
     }
 
     public void decode(File destination, File source) throws IOException {
-        FileReader fr = new FileReader(source);
-        FileWriter fw = new FileWriter(destination);
+        FileInputStream fis = new FileInputStream(source);
+        InputStreamReader instr = new InputStreamReader(fis, StandardCharsets.ISO_8859_1);
+        FileOutputStream fos = new FileOutputStream(destination);
+        OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.ISO_8859_1);
         StringBuilder totalBits = new StringBuilder();
         int read;
         int padding = -1;
-        while ((read = fr.read()) != -1){
+        while ((read = instr.read()) != -1){
             padding = read;
             String binaryString = Integer.toBinaryString(read);
             String paddedBinaryString = String.format("%8s", binaryString).replace(' ', '0');
             totalBits.append(paddedBinaryString);
         }
         totalBits.delete(totalBits.length() - 8 - padding, totalBits.length());
-        System.out.println("     Decoding with: " + totalBits);
 
         HuffmanTree.Node currentNode = tree.rootNode;
         for (char bit : totalBits.toString().toCharArray()){
@@ -36,13 +35,12 @@ public class HuffmanDecoder {
             }
 
             if(currentNode.isLeaf){
-                fw.write(currentNode.letter);
-                System.out.print(currentNode.letter);
+                osw.write(currentNode.letter);
                 currentNode = tree.rootNode;
             }
         }
 
-        fw.close();
-        fr.close();
+        osw.close();
+        instr.close();
     }
 }

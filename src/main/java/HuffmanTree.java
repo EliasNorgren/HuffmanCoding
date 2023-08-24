@@ -1,23 +1,41 @@
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
 public class HuffmanTree {
 
-    private final HashMap<Character, Integer> freqTable = new HashMap<>();
-    private final ArrayList<Node> sortedNodes = new ArrayList<Node>();
     private final HashMap<Character, String> characterBitSetHashMap = new HashMap<>();
     public Node rootNode;
 
-    public HuffmanTree(FileInputStream fis) throws IOException {
-        createFrequencyTable(fis);
-        createSortedNodes();
-        printFrequencyTable();
-
-        this.rootNode = buildTree();
+    public HuffmanTree(File data) throws IOException {
+        FileInputStream fis = new FileInputStream(data);
+        HashMap<Character, Integer> freqTable = createFrequencyTable(fis);
+        ArrayList<Node> sortedNodes = createSortedNodes(freqTable);
+        printFrequencyTable(sortedNodes);
+        this.rootNode = buildTree(sortedNodes);
 
         buildBitMappings(rootNode);
 
+        printBitmappings();
+
+    }
+
+    private void printBitmappings() {
+        System.out.println("--- Printing bit mappings ---");
+        for (Character key : characterBitSetHashMap.keySet()){
+            String bitmap = characterBitSetHashMap.get(key);
+            char sign;
+            if (bitmap.length() == 8){
+                sign = '=';
+            }else if (bitmap.length() <= 8){
+                sign = '<';
+            }else{
+                sign = '>';
+            }
+            System.out.println((int)key + " - " + key + " - " + characterBitSetHashMap.get(key) + " - " + sign);
+        }
+        System.out.println("------------------------------");
     }
 
     private void buildBitMappings(Node rootNode) {
@@ -28,7 +46,6 @@ public class HuffmanTree {
 
     private void recursion(Node node, StringBuilder bitSequence) {
         if(node.isLeaf){
-            System.out.println(node.letter + " - " + bitSequence);
             characterBitSetHashMap.put(node.letter, bitSequence.toString());
             return;
         }
@@ -42,7 +59,7 @@ public class HuffmanTree {
         recursion(node.rightChild, rightSeq);
     }
 
-    private Node buildTree() {
+    private Node buildTree(ArrayList<Node> sortedNodes) {
         PriorityQueue<Node> queue = new PriorityQueue<>();
         queue.addAll(sortedNodes);
 
@@ -59,25 +76,29 @@ public class HuffmanTree {
         return queue.remove();
     }
 
-    private void createSortedNodes() {
+    private ArrayList<Node> createSortedNodes(HashMap<Character, Integer> freqTable) {
+        ArrayList<Node> sortedNodes = new ArrayList<Node>();
         for(char key : freqTable.keySet()){
             sortedNodes.add(new Node(key, freqTable.get(key), true));
         }
         Collections.sort(sortedNodes);
+        return sortedNodes;
     }
 
-    private void printFrequencyTable() {
+    private void printFrequencyTable(ArrayList<Node> sortedNodes) {
         System.out.println("--- Frequency table ---");
         for(Node n : sortedNodes){
-            System.out.println(n.letter + " - " + n.weight);
+            System.out.println((int) n.letter + " - " + n.letter + " - " + n.weight);
         }
         System.out.println("-----------------------");
     }
 
-    private void createFrequencyTable(FileInputStream fis) throws IOException {
+    private HashMap<Character, Integer> createFrequencyTable(FileInputStream fis) throws IOException {
+        HashMap<Character, Integer> freqTable = new HashMap<>();
         int r=0;
-        while((r= fis.read())!=-1)
+        while((r= fis.read()) != -1)
         {
+
             char ch = (char) r;
             if(!freqTable.containsKey(ch)){
                 freqTable.put(ch, 1);
@@ -85,6 +106,7 @@ public class HuffmanTree {
                 freqTable.put(ch, freqTable.get(ch) + 1);
             }
         }
+        return freqTable;
     }
 
     public String getCharacterBitMapping(char c){
@@ -113,6 +135,10 @@ public class HuffmanTree {
                 return -1;
             }
             return 0;
+        }
+
+        public void writeToFile(File destination){
+
         }
 
 
